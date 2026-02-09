@@ -1,7 +1,7 @@
 ---
 name: nanobanana-pro-fallback
-description: "Generate/edit images with Gemini Image API and auto model fallback. Use for image create/modify requests. Run via: uv run {baseDir}/scripts/generate_image.py --prompt 'desc' --filename 'out.png' [--resolution 1K|2K|4K] [-i input.png]. Supports text-to-image + image-to-image (up to 14); 1K/2K/4K. MUST use uv run, not python3."
-version: 0.4.3
+description: "Nano Banana Pro with auto model fallback — generate/edit images via Gemini Image API. Run via: uv run {baseDir}/scripts/generate_image.py --prompt 'desc' --filename 'out.png' [--resolution 1K|2K|4K] [-i input.png]. Supports text-to-image + image-to-image (up to 14); 1K/2K/4K. Fallback chain: gemini-2.5-flash-image → gemini-2.0-flash-exp. MUST use uv run, not python3."
+version: 0.4.4
 license: MIT
 homepage: https://github.com/yazelin/nanobanana-pro
 author: yazelin
