@@ -149,14 +149,19 @@ def main():
     for model_name in fallback_models:
         print(f"Trying model: {model_name}...")
         try:
+            # Only gemini-3 models support image_size; others use aspectRatio only
+            is_gemini3 = "gemini-3" in model_name
+            if is_gemini3:
+                image_config = types.ImageConfig(image_size=output_resolution)
+            else:
+                image_config = types.ImageConfig()
+
             response = client.models.generate_content(
                 model=model_name,
                 contents=contents,
                 config=types.GenerateContentConfig(
                     response_modalities=["TEXT", "IMAGE"],
-                    image_config=types.ImageConfig(
-                        image_size=output_resolution
-                    )
+                    image_config=image_config,
                 )
             )
 
