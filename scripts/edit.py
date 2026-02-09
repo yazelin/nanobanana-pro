@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.10"
-# dependencies = [
-#     "google-genai>=1.0.0",
-#     "pillow>=10.0.0",
-# ]
+# dependencies = []
 # ///
 """
 Edit images using Gemini with automatic model fallback.
+Zero external dependencies — uses only Python stdlib.
 
 Usage:
-    uv run edit.py --prompt "edit instructions" --filename "output.png" -i input.png
-    uv run edit.py --prompt "combine these" --filename "output.png" -i img1.png -i img2.png
+    python3 edit.py --prompt "edit instructions" --filename "output.png" -i input.png
+    python3 edit.py --prompt "combine these" --filename "output.png" -i img1.png -i img2.png
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _common import generate_with_fallback, get_api_key, save_image
+from _common import generate_with_fallback, get_api_key, load_image_as_base64, save_image
 
 
 def main():
@@ -36,44 +35,20 @@ def main():
         print(f"Error: Too many images ({len(args.inputs)}). Max 14.", file=sys.stderr)
         sys.exit(1)
 
-    from google import genai
-    from google.genai import types
-    from PIL import Image as PILImage
-
-    client = genai.Client(api_key=get_api_key(args.api_key))
+    api_key = get_api_key(args.api_key)
     output_path = Path(args.filename)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Load input images
-    images = []
-    max_dim = 0
+    images_b64 = []
     for img_path in args.inputs:
-        try:
-            img = PILImage.open(img_path)
-            images.append(img)
-            w, h = img.size
-            max_dim = max(max_dim, w, h)
-            print(f"Loaded: {img_path} ({w}x{h})")
-        except Exception as e:
-            print(f"Error loading '{img_path}': {e}", file=sys.stderr)
-            sys.exit(1)
+        data, mime = load_image_as_base64(img_path)
+        print(f"Loaded: {img_path}")
+        images_b64.append((data, mime))
 
-    # Auto-detect resolution from input if default
-    resolution = args.resolution
-    if resolution == "1K" and max_dim > 0:
-        if max_dim >= 3000:
-            resolution = "4K"
-        elif max_dim >= 1500:
-            resolution = "2K"
-        if resolution != args.resolution:
-            print(f"Auto-detected resolution: {resolution} (max dim {max_dim})")
-
-    contents = [*images, args.prompt]
-    print(f"Editing {len(images)} image(s) ({resolution})...")
-    response, model_used = generate_with_fallback(
-        client, types, contents, resolution=resolution,
+    print(f"Editing {len(images_b64)} image(s) ({args.resolution})...")
+    result, model_used = generate_with_fallback(
+        api_key, args.prompt, args.resolution, input_images_b64=images_b64,
     )
-    save_image(response, output_path, model_used)
+    save_image(result, output_path, model_used)
 
 
 if __name__ == "__main__":

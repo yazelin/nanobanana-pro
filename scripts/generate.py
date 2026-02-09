@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.10"
-# dependencies = [
-#     "google-genai>=1.0.0",
-#     "pillow>=10.0.0",
-# ]
+# dependencies = []
 # ///
 """
 Generate images using Gemini with automatic model fallback.
+Zero external dependencies — uses only Python stdlib.
 
 Usage:
-    uv run generate.py --prompt "description" --filename "output.png" [--resolution 1K|2K|4K]
+    python3 generate.py --prompt "description" --filename "output.png" [--resolution 1K|2K|4K]
+    uv run generate.py --prompt "description" --filename "output.png"
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-# Add script dir to path for _common import
 sys.path.insert(0, str(Path(__file__).parent))
 from _common import generate_with_fallback, get_api_key, save_image
 
@@ -30,18 +28,12 @@ def main():
     parser.add_argument("--api-key", "-k", help="Gemini API key (overrides env)")
     args = parser.parse_args()
 
-    from google import genai
-    from google.genai import types
-
-    client = genai.Client(api_key=get_api_key(args.api_key))
+    api_key = get_api_key(args.api_key)
     output_path = Path(args.filename)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Generating image ({args.resolution})...")
-    response, model_used = generate_with_fallback(
-        client, types, args.prompt, resolution=args.resolution,
-    )
-    save_image(response, output_path, model_used)
+    result, model_used = generate_with_fallback(api_key, args.prompt, args.resolution)
+    save_image(result, output_path, model_used)
 
 
 if __name__ == "__main__":
