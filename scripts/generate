@@ -1,0 +1,5 @@
+#!/bin/bash
+# Wrapper: always runs via uv (auto-installs dependencies)
+# Usage: ./generate --prompt "description" --filename "output.png"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec uv run "$SCRIPT_DIR/generate_image.py" "$@"
